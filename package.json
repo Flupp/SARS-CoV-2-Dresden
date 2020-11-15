@@ -1,0 +1,14 @@
+{
+  "name": "sars-cov-2-dresden",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Toni Dietze",
+  "license": "MIT-0",
+  "dependencies": {
+    "chart.js": "^2.9.4"
+  }
+}
