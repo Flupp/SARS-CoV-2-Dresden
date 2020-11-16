@@ -81,7 +81,7 @@ function updateRange(min) {
 
 function weekcoloring(data, colors) {
   return data.map(
-    p => 1 <= p.x.getUTCDay() && p.x.getUTCDay() <= 5
+    p => 1 <= p.x.getDay() && p.x.getDay() <= 5
        ? colors.dark : colors.light);
 }
 
