@@ -64,6 +64,13 @@ function drawChart(elementId, stacked, xMin, xMax, datasets) {
 }
 
 
+function updateChartHeight(height) {
+  for (const e of document.querySelectorAll('.chart-container')) {
+    e.style.height = (height / 1000) + 'vh';
+  }
+}
+
+
 function updateRange(min) {
   for (const chart of charts) {
     chart.options.scales.xAxes[0].ticks.min = dateAddDays(min, -1);
@@ -80,6 +87,12 @@ function weekcoloring(data, colors) {
 
 
 window.onload = function() {
+  {
+    const slider = document.getElementById('chartHeight');
+    updateChartHeight(slider.value);
+    slider.oninput = function () { updateChartHeight(this.value); };
+  }
+
   const requestURL = 'https://services.arcgis.com/ORpvigFPJUhb8RDF/arcgis/rest/services/corona_DD_7_Sicht/FeatureServer/0/query?f=json&where=Datum_neu+IS+NOT+NULL&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&resultOffset=0&resultRecordCount=32000&resultType=standard&cacheHint=true';
 
   const request = new XMLHttpRequest();
