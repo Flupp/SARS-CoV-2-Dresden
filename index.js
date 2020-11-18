@@ -5,6 +5,8 @@
 const POPULATION_SIZE = 556780;
 const INCIDENCE_FACTOR = 100000 / POPULATION_SIZE;
 
+const SAMPLE_INTERVAL = 86400000;  // 1 day
+
 const colorsNeutral   = { dark:  'hsl(190, 100%, 35%)'
                         , light: 'hsl(190, 100%, 55%)' };
 const colorsNew       = { dark:  'hsl(  0, 100%, 45%)'
@@ -22,15 +24,27 @@ function dateAddDays(date, days) {
 }
 
 
-function windowFold(data, windowSize, shift = 0, factor = 1) {
+// Note: The first windows are only partially filled, i.e., zeros are
+//       assumed before the first data entry.  For example:
+//
+//       windowSums(3, [1, 2, 3, 4])
+//         == [1,  1 + 2,  1 + 2 + 3,  2 + 3 + 4]
+//
+// Note: If there are rounding errors in a window, this implementation
+//       propagates these errors to subsequent windows.
+//
+function windowSums(windowSize, data) {
+  windowSize = Math.min(windowSize, data.length);
   const ret = [];
-  for (const d of data) {
-    const hi = d.x;
-    const lo = dateAddDays(hi, -windowSize);
-    ret.push
-      ( { x: shift == 0 ? hi : dateAddDays(hi, shift)
-        , y: factor * data.filter(p => lo < p.x && p.x <= hi)
-                          .reduce((s, p) => s + p.y, 0) } );
+  let sum = 0;
+  for (let i = 0; i < windowSize; ++i) {
+    sum += data[i];
+    ret.push(sum);
+  }
+  for (let i = windowSize; i < data.length; ++i) {
+    sum -= data[i - windowSize];
+    sum += data[i];
+    ret.push(sum);
   }
   return ret;
 }
@@ -72,18 +86,47 @@ function updateChartHeight(height) {
 }
 
 
-function updateRange(min) {
-  for (const chart of charts) {
-    chart.options.scales.xAxes[0].ticks.min = dateAddDays(min, -1);
-    chart.update();
-  }
-}
-
-
 function weekcoloring(data, colors) {
   return data.map(
     p => 1 <= p.x.getDay() && p.x.getDay() <= 5
        ? colors.dark : colors.light);
+}
+
+
+
+
+function toTimeSeries(startTime, data) {
+  const ret = [];
+  for (const d of data) {
+    ret.push({x: new Date(startTime), y: d});
+    startTime += SAMPLE_INTERVAL;
+  }
+  return ret;
+}
+
+
+function createBarDataset(label, colors, startTime, data) {
+  const timeSeries = toTimeSeries(startTime, data);
+  return { backgroundColor: weekcoloring(timeSeries, colors)
+         , borderWidth: 0
+         , data: timeSeries
+         , label: label
+         , type: 'bar' };
+}
+
+
+function createLineDataset(label, colors, startTime, data) {
+  const timeSeries = toTimeSeries(startTime, data);
+  const colorSequence = weekcoloring(timeSeries, colors);
+  return { backgroundColor: colorSequence
+         , borderColor: colors.light
+         , borderWidth: 1
+         , cubicInterpolationMode: 'monotone'
+         , data: timeSeries
+         , fill: false
+         , label: label
+         , pointBorderColor: colorSequence
+         , type: 'line' };
 }
 
 
@@ -102,125 +145,126 @@ window.onload = function() {
   request.send();
   request.onload = function() {
     const data = request.response.features.map(o => o.attributes);
-    data.sort((a, b) => a.Datum_neu - b.Datum_neu);
-
-    let todayActive = 0;
-    const dates = [];
-    const dailyNew = [];
-    const dailyDeaths = [];
-    const dailyRecovered = [];
-    const dailyHospitalized = [];
-    const dailyActive = [];
-    const daily7DayIncidenceOld = [];
-    for (const o of data) {
-      const today = new Date(o.Datum_neu);
-      dates.push(today);
-      function pushNonNull(array, y) {
-        if (y !== null) {
-          array.push({x: today, y: y});
-        }
+    for (let i = 1; i < data.length; ++i) {
+      const d1 = data[i - 1].Datum_neu;
+      const d2 = data[i].Datum_neu;
+      const diff = d2 - d1;
+      if (diff != SAMPLE_INTERVAL) {
+        console.warn(`Unexpected difference to previous date at index ${i}: ${d2} - ${d1} == ${diff} != ${SAMPLE_INTERVAL}`);
+        window.alert('Die geladenen Daten entsprechen nicht dem erwarteten Format. Einige Diagramme sind wahrscheinlich fehlerhaft.');
+        break;
       }
-      const todayNew       = o.Fälle_Meldedatum;
-      const todayDeceased  = o.SterbeF_Meldedatum;
-      const todayRecovered = o.Zuwachs_Genesung;
-      todayActive += todayNew - todayRecovered - todayDeceased;
-      pushNonNull(dailyNew             , todayNew);
-      pushNonNull(dailyDeaths          , todayDeceased);
-      pushNonNull(dailyRecovered       , todayRecovered);
-      pushNonNull(dailyActive          , todayActive);
-      pushNonNull(dailyHospitalized    , o.Hosp_Meldedatum);
-      pushNonNull(daily7DayIncidenceOld, o.Inzidenz);
     }
 
-    const sliderIdxFirst = document.getElementById("idxFirst");
-    sliderIdxFirst.max = dates.length - 1;
-    sliderIdxFirst.value = Math.max(0, dates.length - 70);
-    sliderIdxFirst.oninput = function () { updateRange(dates[this.value]); };
+    const dayFirst = data[0].Datum_neu;
+    const dayLast  = data[data.length - 1].Datum_neu;
 
-    const xMin = dateAddDays(dates[sliderIdxFirst.value], -1);
-    const xMax = dateAddDays(dates[dates.length - 1], 2);
+    const dailyNew          = data.map(o => o.Fälle_Meldedatum);
+    const dailyDeaths       = data.map(o => o.SterbeF_Meldedatum);
+    const dailyRecovered    = data.map(o => o.Zuwachs_Genesung);
+    const dailyHospitalized = data.map(o => o.Hosp_Meldedatum);
+
+    const timeSeries7DayIncidenceOld = [];
+    const dailyActive = [];
+    let todayActive = 0;
+    for (const o of data) {
+      if (o.Inzidenz !== null) {
+        timeSeries7DayIncidenceOld.push({x: o.Datum_neu, y: o.Inzidenz});
+      }
+      todayActive += o.Fälle_Meldedatum - o.Zuwachs_Genesung - o.SterbeF_Meldedatum;
+      dailyActive.push(todayActive);
+    }
+
+    const xMin = Math.max(dayFirst, dayLast - 70 * SAMPLE_INTERVAL);
+    const xMax = dayLast + 2 * SAMPLE_INTERVAL;
       // add more than one because last incidence is in future
 
-    const daily7DayIncidence = windowFold(dailyNew, 7, 1, INCIDENCE_FACTOR);
+    {
+      const slider = document.getElementById('idxFirst');
+      slider.min = dayFirst - SAMPLE_INTERVAL;
+      slider.max = dayLast  - SAMPLE_INTERVAL;
+      slider.value = xMin;
+      slider.oninput = function () {
+        for (const chart of charts) {
+          chart.options.scales.xAxes[0].ticks.min = Number(this.value);
+          chart.update();
+        }
+      };
+    }
+
     drawChart
       ( 'canvas7DayIncidence'
       , false
       , xMin
       , xMax
       , [ { backgroundColor: '#000000'
-          , data: daily7DayIncidenceOld
+          , data: timeSeries7DayIncidenceOld
           , label: 'historisch'
           , type: 'scatter' }
-        , { backgroundColor: weekcoloring(daily7DayIncidence, colorsNeutral)
-          , borderWidth: 0
-          , data: daily7DayIncidence
-          , label: 'aktuell'
-          , type: 'bar' } ] );
+        , createBarDataset
+            ( 'aktuell'
+            , colorsNeutral
+            , dayFirst + SAMPLE_INTERVAL
+            , windowSums(7, dailyNew).map(y => y * INCIDENCE_FACTOR)) ] );
 
     drawChart
       ( 'canvasCases'
       , true
       , xMin
       , xMax
-      , [ { backgroundColor: weekcoloring(dailyNew, colorsNew)
-          , borderWidth: 0
-          , data: dailyNew
-          , label: 'neu'
-          , type: 'bar' }
-        , { backgroundColor: weekcoloring(dailyDeaths, colorsDeceased)
-          , borderWidth: 0
-          , data: dailyDeaths.map(function (p) { return {x: p.x, y: -p.y}; })
-          , label: 'verstorben'
-          , type: 'bar' }
-        , { backgroundColor: weekcoloring(dailyRecovered, colorsRecovered)
-          , borderWidth: 0
-          , data: dailyRecovered.map(function (p) { return {x: p.x, y: -p.y}; })
-          , label: 'genesen'
-          , type: 'bar' } ] );
+      , [ createBarDataset
+            ( 'neu'
+            , colorsNew
+            , dayFirst
+            , dailyNew )
+        , createBarDataset
+            ( 'verstorben'
+            , colorsDeceased
+            , dayFirst
+            , dailyDeaths.map(y => -y) )
+        , createBarDataset
+            ( 'genesen'
+            , colorsRecovered
+            , dayFirst
+            , dailyRecovered.map(y => -y) ) ] );
 
     drawChart
       ( 'canvasActive'
       , false
       , xMin
       , xMax
-      , [ { backgroundColor: weekcoloring(dailyActive, colorsNeutral)
-          , borderWidth: 0
-          , data: dailyActive
-          , label: 'aktiv'
-          , type: 'bar' } ] );
+      , [ createBarDataset
+            ( 'aktiv'
+            , colorsNeutral
+            , dayFirst
+            , dailyActive ) ] );
 
     drawChart
       ( 'canvasHospitalized'
       , false
       , xMin
       , xMax
-      , [ { backgroundColor: weekcoloring(dailyHospitalized, colorsNeutral)
-          , borderWidth: 0
-          , data: dailyHospitalized
-          , label: 'Krankenhauseinweisungen'
-          , type: 'bar' } ] );
+      , [ createBarDataset
+            ( 'Krankenhauseinweisungen'
+            , colorsNeutral
+            , dayFirst
+            , dailyHospitalized ) ] );
 
-    const dailyInHospital14 = windowFold(dailyHospitalized, 14);
-    const dailyInHospital20 = windowFold(dailyHospitalized, 20);
     drawChart
       ( 'canvasInHospital'
       , false
       , xMin
       , xMax
-      , [ { backgroundColor: weekcoloring(dailyInHospital14, colorsRecovered)
-          , borderColor: colorsRecovered.dark
-          , borderWidth: 0
-          , data: dailyInHospital14
-          , fill: false
-          , label: '14 Tage'
-          , type: 'line' }
-        , { backgroundColor: weekcoloring(dailyInHospital20, colorsNew)
-          , borderColor: colorsNew.dark
-          , borderWidth: 0
-          , data: dailyInHospital20
-          , fill: false
-          , label: '20 Tage'
-          , type: 'line' } ] );
+      , [  createLineDataset
+            ( '14 Tage'
+            , colorsRecovered
+            , dayFirst
+            , windowSums(14, dailyHospitalized) )
+        ,  createLineDataset
+            ( '20 Tage'
+            , colorsNew
+            , dayFirst
+            , windowSums(20, dailyHospitalized) ) ] );
 
   };
 };
