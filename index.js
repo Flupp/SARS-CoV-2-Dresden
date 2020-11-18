@@ -1,3 +1,4 @@
+// -*- js-chain-indent: t; js-indent-level: 2; -*-
 // kate: indent-width 2; replace-tabs true;
 'use strict';
 
