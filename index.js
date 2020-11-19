@@ -71,7 +71,7 @@ function drawChart(elementId, stacked, xMin, xMax, datasets) {
             , yAxes: [{}] }
           , tooltips:
             { itemSort: (a, b) => a.y - b.y
-            , mode: 'x' }
+            , mode: 'index' }
           , // https://www.chartjs.org/docs/latest/general/performance.html
             animation: { duration: 0 }
           , hover: { animationDuration: 0 }
