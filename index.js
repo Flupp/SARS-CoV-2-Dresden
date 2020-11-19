@@ -17,6 +17,12 @@ const colorsRecovered = { dark:  'hsl(160, 100%, 30%)'
                         , light: 'hsl(160, 100%, 50%)' };
 
 
+function calcPointRadius(xMin, xMax) {
+   return Math.max(1, Math.min(3,
+     0.25 * window.innerWidth / ((xMax - xMin) / SAMPLE_INTERVAL)));
+}
+
+
 function dateAddDays(date, days) {
   const ret = new Date(date.valueOf());
   ret.setDate(ret.getDate() + days);
@@ -178,6 +184,7 @@ window.onload = function() {
     const xMin = Math.max(dayFirst, dayLast - 70 * SAMPLE_INTERVAL);
     const xMax = dayLast + 2 * SAMPLE_INTERVAL;
       // add more than one because last incidence is in future
+    Chart.defaults.global.elements.point.radius = calcPointRadius(xMin, xMax);
 
     {
       const slider = document.getElementById('idxFirst');
@@ -185,12 +192,22 @@ window.onload = function() {
       slider.max = dayLast  - SAMPLE_INTERVAL;
       slider.value = xMin;
       slider.oninput = function () {
+        const r = calcPointRadius(this.value, this.max);
         for (const chart of charts) {
+          chart.options.elements.point.radius = r;
           chart.options.scales.xAxes[0].ticks.min = Number(this.value);
           chart.update();
         }
       };
     }
+    window.onresize = function () {
+      const slider = document.getElementById('idxFirst');
+      const r = calcPointRadius(slider.value, slider.max);
+      for (const chart of charts) {
+        chart.options.elements.point.radius = r;
+        chart.update();
+      }
+    };
 
     drawChart
       ( 'canvas7DayIncidence'
