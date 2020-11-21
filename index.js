@@ -165,18 +165,15 @@ window.onload = function() {
     const dayFirst = data[0].Datum_neu;
     const dayLast  = data[data.length - 1].Datum_neu;
 
-    const dailyNew          = data.map(o => o.Fälle_Meldedatum);
-    const dailyDeaths       = data.map(o => o.SterbeF_Meldedatum);
-    const dailyRecovered    = data.map(o => o.Zuwachs_Genesung);
-    const dailyHospitalized = data.map(o => o.Hosp_Meldedatum);
+    const daily7DayIncidenceOld = data.map(o => o.Inzidenz);
+    const dailyNew              = data.map(o => o.Fälle_Meldedatum);
+    const dailyDeaths           = data.map(o => o.SterbeF_Meldedatum);
+    const dailyRecovered        = data.map(o => o.Zuwachs_Genesung);
+    const dailyHospitalized     = data.map(o => o.Hosp_Meldedatum);
 
-    const timeSeries7DayIncidenceOld = [];
     const dailyActive = [];
     let todayActive = 0;
     for (const o of data) {
-      if (o.Inzidenz !== null) {
-        timeSeries7DayIncidenceOld.push({x: o.Datum_neu, y: o.Inzidenz});
-      }
       todayActive += o.Fälle_Meldedatum - o.Zuwachs_Genesung - o.SterbeF_Meldedatum;
       dailyActive.push(todayActive);
     }
@@ -209,20 +206,22 @@ window.onload = function() {
       }
     };
 
+    const daily7DayIncidence = windowSums(7, dailyNew).map(y => y * INCIDENCE_FACTOR);
+    daily7DayIncidence.unshift(0);  // the 7 day incidence refers to the last 7 days *before* the current day
     drawChart
       ( 'canvas7DayIncidence'
       , false
       , xMin
       , xMax
       , [ { backgroundColor: '#000000'
-          , data: timeSeries7DayIncidenceOld
+          , data: toTimeSeries(dayFirst, daily7DayIncidenceOld)
           , label: 'historisch'
           , type: 'scatter' }
         , createBarDataset
             ( 'aktuell'
             , colorsNeutral
-            , dayFirst + SAMPLE_INTERVAL
-            , windowSums(7, dailyNew).map(y => y * INCIDENCE_FACTOR)) ] );
+            , dayFirst
+            , daily7DayIncidence ) ] );
 
     drawChart
       ( 'canvasCases'
