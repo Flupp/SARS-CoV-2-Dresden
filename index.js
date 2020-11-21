@@ -271,12 +271,12 @@ window.onload = function() {
       , false
       , xMin
       , xMax
-      , [  createLineDataset
+      , [ createLineDataset
             ( '14 Tage'
             , colorsRecovered
             , dayFirst
             , windowSums(14, dailyHospitalized) )
-        ,  createLineDataset
+        , createLineDataset
             ( '20 Tage'
             , colorsNew
             , dayFirst
