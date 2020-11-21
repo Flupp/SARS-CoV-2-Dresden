@@ -216,7 +216,16 @@ window.onload = function() {
             ( 'aktuell'
             , colorsNeutral
             , dayFirst
-            , daily7DayIncidence ) ] );
+            , daily7DayIncidence )
+        , { backgroundColor: colorsNew.light
+          , borderColor: colorsNew.light
+          , borderWidth: 1
+          , fill: false
+          , label: '50'
+          , pointHoverRadius: 0
+          , pointRadius: 0
+          , data: [ { x: 0, y: 50 }, { x: xMax, y: 50 } ]
+          , type: 'line' } ] );
 
     drawChart
       ( 'canvasCases'
