@@ -4,9 +4,14 @@
         "es2021": true
     },
     "extends": "eslint:recommended",
+    "globals": {
+        "Chart": "readonly"
+    },
     "parserOptions": {
         "ecmaVersion": 12
     },
     "rules": {
+        "no-unexpected-multiline": "off",
+        "semi": ["warn", "always"]
     }
 }
