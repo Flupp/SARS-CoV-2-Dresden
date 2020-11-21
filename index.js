@@ -179,7 +179,7 @@ window.onload = function() {
     }
 
     const xMin = Math.max(dayFirst, dayLast - 70 * SAMPLE_INTERVAL);
-    const xMax = dayLast + 2 * SAMPLE_INTERVAL;
+    const xMax = dayLast + 1.5 * SAMPLE_INTERVAL;
       // add more than one because last incidence is in future
     Chart.defaults.global.elements.point.radius = calcPointRadius(xMin, xMax);
 
@@ -261,7 +261,7 @@ window.onload = function() {
       , xMin
       , xMax
       , [ createBarDataset
-            ( 'Krankenhauseinweisungen'
+            ( 'hospitalisiert'
             , colorsNeutral
             , dayFirst
             , dailyHospitalized ) ] );
