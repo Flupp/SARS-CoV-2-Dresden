@@ -23,13 +23,6 @@ function calcPointRadius(xMin, xMax) {
 }
 
 
-function dateAddDays(date, days) {
-  const ret = new Date(date.valueOf());
-  ret.setDate(ret.getDate() + days);
-  return ret;
-}
-
-
 // Note: The first windows are only partially filled, i.e., zeros are
 //       assumed before the first data entry.  For example:
 //
