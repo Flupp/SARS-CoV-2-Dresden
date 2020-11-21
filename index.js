@@ -71,7 +71,8 @@ function drawChart(elementId, stacked, xMin, xMax, datasets) {
               [ { stacked: stacked
                 , ticks: { min: xMin, max: xMax }
                 , time:
-                  { tooltipFormat: 'YYYY-MM-DD / YYYY-[W]WW-E'
+                  { displayFormats: { week: 'MMM DD' }
+                  , tooltipFormat: 'YYYY-MM-DD / YYYY-[W]WW-E'
                   , unit: 'week' }
                 , type: 'time' } ]
             , yAxes: [{}] }
