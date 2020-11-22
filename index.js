@@ -24,6 +24,18 @@ Chart.defaults.global.tooltips.itemSort = (a, b) => a.y - b.y;
 Chart.defaults.global.tooltips.mode = 'index';
 
 
+function tooltipCallbackLabelRounded(tooltipItem, data) {
+  let label = data.datasets[tooltipItem.datasetIndex].label || '';
+  if (label) {
+    label += ': ';
+  }
+  label += data.datasets[tooltipItem.datasetIndex]
+               .data[tooltipItem.index]
+               .y.toFixed(1);
+  return label;
+}
+
+
 function calcPointRadius(xMin, xMax) {
    return Math.max(1, Math.min(3,
      0.25 * window.innerWidth / ((xMax - xMin) / SAMPLE_INTERVAL)));
@@ -213,7 +225,10 @@ window.onload = function() {
                 , pointRadius: 0
                 , data: [ { x: 0, y: 50 }, { x: xMax, y: 50 } ]
                 , type: 'line' } ] }
-          , options: { scales: scales } } ) );
+          , options:
+            { scales: scales
+            , tooltips:
+              { callbacks: { label: tooltipCallbackLabelRounded } } } } ) );
 
     charts.push
       ( new Chart
