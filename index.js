@@ -16,6 +16,13 @@ const colorsDeceased  = { dark:  'hsl(  0,   0%, 30%)'
 const colorsRecovered = { dark:  'hsl(160, 100%, 30%)'
                         , light: 'hsl(160, 100%, 50%)' };
 
+Chart.defaults.global.animation.duration = 0;
+Chart.defaults.global.hover.animationDuration = 0;
+Chart.defaults.global.maintainAspectRatio = false;
+Chart.defaults.global.responsiveAnimationDuration = 0;
+Chart.defaults.global.tooltips.itemSort = (a, b) => a.y - b.y;
+Chart.defaults.global.tooltips.mode = 'index';
+
 
 function calcPointRadius(xMin, xMax) {
    return Math.max(1, Math.min(3,
@@ -46,37 +53,6 @@ function windowSums(windowSize, data) {
     ret.push(sum);
   }
   return ret;
-}
-
-
-let charts = [];
-
-function drawChart(elementId, stacked, xMin, xMax, datasets) {
-  charts.push
-    ( new Chart
-      ( document.getElementById(elementId).getContext('2d')
-      , { data: { datasets: datasets }
-        , options:
-          { maintainAspectRatio: false
-          , responsive: true
-          , scales:
-            { xAxes:
-              [ { stacked: stacked
-                , ticks: { min: xMin, max: xMax }
-                , time:
-                  { displayFormats: { week: 'MMM DD' }
-                  , isoWeekday: true
-                  , tooltipFormat: 'YYYY-MM-DD / YYYY-[W]WW-E'
-                  , unit: 'week' }
-                , type: 'time' } ]
-            , yAxes: [{}] }
-          , tooltips:
-            { itemSort: (a, b) => a.y - b.y
-            , mode: 'index' }
-          , // https://www.chartjs.org/docs/latest/general/performance.html
-            animation: { duration: 0 }
-          , hover: { animationDuration: 0 }
-          , responsiveAnimationDuration: 0 } } ) );
 }
 
 
@@ -173,6 +149,7 @@ window.onload = function() {
       dailyActive.push(todayActive);
     }
 
+    const charts = [];
     const xMin = Math.max(dayFirst, dayLast - 70 * SAMPLE_INTERVAL);
     const xMax = dayLast + 1.5 * SAMPLE_INTERVAL;
       // add more than one because last incidence is in future
@@ -201,90 +178,99 @@ window.onload = function() {
       }
     };
 
+    const timeScale
+      = { displayFormats: { week: 'MMM DD' }
+        , isoWeekday: true
+        , tooltipFormat: 'YYYY-MM-DD / YYYY-[W]WW-E'
+        , unit: 'week' }
+    const scales
+      = { xAxes: [ { ticks: { min: xMin, max: xMax }
+                   , time: timeScale
+                   , type: 'time' } ]
+        , yAxes: [ { } ] }
+
     const daily7DayIncidence = windowSums(7, dailyNew).map(y => y * INCIDENCE_FACTOR);
     daily7DayIncidence.unshift(0);  // the 7 day incidence refers to the last 7 days *before* the current day
-    drawChart
-      ( 'canvas7DayIncidence'
-      , false
-      , xMin
-      , xMax
-      , [ { backgroundColor: '#000000'
-          , data: toTimeSeries(dayFirst, daily7DayIncidenceOld)
-          , label: 'historisch'
-          , type: 'scatter' }
-        , createBarDataset
-            ( 'aktuell'
-            , colorsNeutral
-            , dayFirst
-            , daily7DayIncidence )
-        , { backgroundColor: colorsNew.light
-          , borderColor: colorsNew.light
-          , borderWidth: 1
-          , fill: false
-          , label: '50'
-          , pointHoverRadius: 0
-          , pointRadius: 0
-          , data: [ { x: 0, y: 50 }, { x: xMax, y: 50 } ]
-          , type: 'line' } ] );
+    charts.push
+      ( new Chart
+        ( document.getElementById('canvas7DayIncidence').getContext('2d')
+        , { data:
+            { datasets:
+              [ { backgroundColor: '#000000'
+                , data: toTimeSeries(dayFirst, daily7DayIncidenceOld)
+                , label: 'historisch'
+                , type: 'scatter' }
+              , createBarDataset ( 'aktuell'
+                                 , colorsNeutral
+                                 , dayFirst
+                                 , daily7DayIncidence )
+              , { backgroundColor: colorsNew.light
+                , borderColor: colorsNew.light
+                , borderWidth: 1
+                , fill: false
+                , label: '50'
+                , pointHoverRadius: 0
+                , pointRadius: 0
+                , data: [ { x: 0, y: 50 }, { x: xMax, y: 50 } ]
+                , type: 'line' } ] }
+          , options: { scales: scales } } ) );
 
-    drawChart
-      ( 'canvasCases'
-      , true
-      , xMin
-      , xMax
-      , [ createBarDataset
-            ( 'neu'
-            , colorsNew
-            , dayFirst
-            , dailyNew )
-        , createBarDataset
-            ( 'verstorben'
-            , colorsDeceased
-            , dayFirst
-            , dailyDeaths.map(y => -y) )
-        , createBarDataset
-            ( 'genesen'
-            , colorsRecovered
-            , dayFirst
-            , dailyRecovered.map(y => -y) ) ] );
+    charts.push
+      ( new Chart
+        ( document.getElementById('canvasCases').getContext('2d')
+        , { data:
+            { datasets:
+              [ createBarDataset ( 'neu'
+                                 , colorsNew
+                                 , dayFirst
+                                 , dailyNew )
+              , createBarDataset ( 'verstorben'
+                                 , colorsDeceased
+                                 , dayFirst
+                                 , dailyDeaths.map(y => -y) )
+              , createBarDataset ( 'genesen'
+                                 , colorsRecovered
+                                 , dayFirst
+                                 , dailyRecovered.map(y => -y) ) ] }
+          , options: { scales: { xAxes: [ { stacked: true
+                                          , ticks: { min: xMin, max: xMax }
+                                          , time: timeScale
+                                          , type: 'time' } ]
+                               , yAxes: [ { } ] } } } ) );
 
-    drawChart
-      ( 'canvasActive'
-      , false
-      , xMin
-      , xMax
-      , [ createBarDataset
-            ( 'aktiv'
-            , colorsNeutral
-            , dayFirst
-            , dailyActive ) ] );
+    charts.push
+      ( new Chart
+        ( document.getElementById('canvasActive').getContext('2d')
+        , { data: { datasets: [ createBarDataset ( 'aktiv'
+                                                 , colorsNeutral
+                                                 , dayFirst
+                                                 , dailyActive ) ] }
+          , options: { scales: scales } } ) );
 
-    drawChart
-      ( 'canvasHospitalized'
-      , false
-      , xMin
-      , xMax
-      , [ createBarDataset
-            ( 'hospitalisiert'
-            , colorsNeutral
-            , dayFirst
-            , dailyHospitalized ) ] );
+    charts.push
+      ( new Chart
+        ( document.getElementById('canvasHospitalized').getContext('2d')
+        , { data:
+            { datasets:
+              [ createBarDataset ( 'hospitalisiert'
+                                 , colorsNeutral
+                                 , dayFirst
+                                 , dailyHospitalized ) ] }
+          , options: { scales: scales } } ) );
 
-    drawChart
-      ( 'canvasInHospital'
-      , false
-      , xMin
-      , xMax
-      , [ createLineDataset
-            ( '14 Tage'
-            , colorsRecovered
-            , dayFirst
-            , windowSums(14, dailyHospitalized) )
-        , createLineDataset
-            ( '20 Tage'
-            , colorsNew
-            , dayFirst
-            , windowSums(20, dailyHospitalized) ) ] );
-
+    charts.push
+      ( new Chart
+        ( document.getElementById('canvasInHospital').getContext('2d')
+        , { data:
+            { datasets:
+              [ createLineDataset ( '14 Tage'
+                                  , colorsRecovered
+                                  , dayFirst
+                                  , windowSums(14, dailyHospitalized) )
+              , createLineDataset ( '20 Tage'
+                                  , colorsNew
+                                  , dayFirst
+                                  , windowSums(20, dailyHospitalized) ) ] }
+          , options: { scales: scales } } ) );
   };
 };
