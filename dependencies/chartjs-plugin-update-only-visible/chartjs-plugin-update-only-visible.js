@@ -1,5 +1,11 @@
 /*
  * @license
+ * chartjs-plugin-update-only-visible
+ *
+ * Copyright 2020 Toni Dietze
+ *
+ * derived from:
+ *
  * chartjs-plugin-deferred
  * http://chartjs.org/
  * Version: 1.0.1
@@ -19,39 +25,10 @@ Chart = Chart && Chart.hasOwnProperty('default') ? Chart['default'] : Chart;
 'use strict';
 
 var helpers = Chart.helpers;
-var STUB_KEY = '$chartjs_deferred';
-var MODEL_KEY = '$deferred';
-
-/**
- * Plugin based on discussion from Chart.js issue #2745.
- * @see https://github.com/chartjs/Chart.js/issues/2745
- */
-Chart.defaults.global.plugins.deferred = {
-	xOffset: 0,
-	yOffset: 0,
-	delay: 0
-};
-
-function defer(fn, delay) {
-	if (delay) {
-		window.setTimeout(fn, delay);
-	} else {
-		helpers.requestAnimFrame.call(window, fn);
-	}
-}
-
-function computeOffset(value, base) {
-	var number = parseInt(value, 10);
-	if (isNaN(number)) {
-		return 0;
-	} else if (typeof value === 'string' && value.indexOf('%') !== -1) {
-		return number / 100 * base;
-	}
-	return number;
-}
+var STUB_KEY = '$chartjs_update_only_visible';
+var MODEL_KEY = '$update_only_visible';
 
 function chartInViewport(chart) {
-	var options = chart[MODEL_KEY].options;
 	var canvas = chart.chart.canvas;
 
 	// http://stackoverflow.com/a/21696585
@@ -60,39 +37,27 @@ function chartInViewport(chart) {
 	}
 
 	var rect = canvas.getBoundingClientRect();
-	var dy = computeOffset(options.yOffset || 0, rect.height);
-	var dx = computeOffset(options.xOffset || 0, rect.width);
 
-	return rect.right - dx >= 0
-		&& rect.bottom - dy >= 0
-		&& rect.left + dx <= window.innerWidth
-		&& rect.top + dy <= window.innerHeight;
+	return rect.right  >= 0
+		&& rect.bottom >= 0
+		&& rect.left   <= window.innerWidth
+		&& rect.top    <= window.innerHeight;
 }
 
 function onScroll(event) {
 	var node = event.target;
 	var stub = node[STUB_KEY];
-	if (stub.ticking) {
-		return;
-	}
 
-	stub.ticking = true;
-	defer(function() {
-		var charts = stub.charts.slice();
-		var ilen = charts.length;
-		var chart, i;
+	var charts = stub.charts.slice();
+	var ilen = charts.length;
+	var chart, i;
 
-		for (i = 0; i < ilen; ++i) {
-			chart = charts[i];
-			if (chartInViewport(chart)) {
-				unwatch(chart); // eslint-disable-line
-				chart[MODEL_KEY].appeared = true;
-				chart.update();
-			}
+	for (i = 0; i < ilen; ++i) {
+		chart = charts[i];
+		if (chartInViewport(chart)) {
+			chart.update();
 		}
-
-		stub.ticking = false;
-	});
+	}
 }
 
 function isScrollable(node) {
@@ -142,46 +107,28 @@ function unwatch(chart) {
 }
 
 Chart.plugins.register({
-	id: 'deferred',
+	id: 'update-only-visible',
 
 	beforeInit: function(chart, options) {
 		chart[MODEL_KEY] = {
 			options: options,
-			appeared: false,
-			delayed: false,
-			loaded: false,
+			watching: false,
 			elements: []
 		};
-
-		watch(chart);
 	},
 
-	beforeDatasetsUpdate: function(chart, options) {
+	beforeUpdate: function(chart, options) {
 		var model = chart[MODEL_KEY];
-		if (!model.loaded) {
-			if (!model.appeared && !chartInViewport(chart)) {
-				// cancel the datasets update
-				return false;
+		if (chartInViewport(chart)) {
+			if (model.watching) {
+				model.watching = false;
+				unwatch(chart);
 			}
-
-			model.appeared = true;
-			model.loaded = true;
-			unwatch(chart);
-
-			if (options.delay > 0) {
-				model.delayed = true;
-				defer(function() {
-					model.delayed = false;
-					chart.update();
-				}, options.delay);
-
-				return false;
+		} else {
+			if (!model.watching) {
+				model.watching = true;
+				watch(chart);
 			}
-		}
-
-		if (model.delayed) {
-			// in case of delayed update, ensure to block external requests, such
-			// as interacting with the legend label, or direct calls to update()
 			return false;
 		}
 	},
