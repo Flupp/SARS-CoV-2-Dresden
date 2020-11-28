@@ -24,15 +24,36 @@ Chart.defaults.global.tooltips.itemSort = (a, b) => a.y - b.y;
 Chart.defaults.global.tooltips.mode = 'index';
 
 
+function figureSpaceFill(x) {
+  return ' '.repeat  // U+2007 FIGURE SPACE
+         ( Math.max
+           ( 0
+           , Math.ceil
+             ( 3
+               - ( Math.abs(x) < 10
+                 ? 0
+                 : Math.log10(Math.abs(x))
+         ) ) )   )
+       + x.toString();
+}
+
+
 function tooltipCallbackLabelRounded(tooltipItem, data) {
-  let label = data.datasets[tooltipItem.datasetIndex].label || '';
-  if (label) {
-    label += ': ';
-  }
-  label += data.datasets[tooltipItem.datasetIndex]
-               .data[tooltipItem.index]
-               .y.toFixed(1);
-  return label;
+  return figureSpaceFill(data.datasets[tooltipItem.datasetIndex]
+                             .data[tooltipItem.index]
+                             .y.toFixed(1));
+}
+
+
+// Note: negative values are rendered without sign
+function tooltipCallbackLabelWithInzidence(tooltipItem, data) {
+  const y = Math.abs(data.datasets[tooltipItem.datasetIndex]
+                         .data[tooltipItem.index]
+                         .y);
+  return figureSpaceFill(y)
+       +  ' '  // U+2002 EN SPACE
+       +  figureSpaceFill((INCIDENCE_FACTOR * y).toFixed(1))
+       +  ' / 100 000 EW';
 }
 
 
@@ -256,11 +277,14 @@ window.onload = function() {
                                  , colorsRecovered
                                  , dayFirst
                                  , dailyRecovered.map(y => -y) ) ] }
-          , options: { scales: { xAxes: [ { stacked: true
-                                          , ticks: { min: xMin, max: xMax }
-                                          , time: timeScale
-                                          , type: 'time' } ]
-                               , yAxes: [ { } ] } } } ) );
+          , options:
+            { scales: { xAxes: [ { stacked: true
+                                 , ticks: { min: xMin, max: xMax }
+                                 , time: timeScale
+                                 , type: 'time' } ]
+                      , yAxes: [ { } ] }
+            , tooltips:
+              { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } ) );
 
     charts.push
       ( new Chart
@@ -269,7 +293,10 @@ window.onload = function() {
                                                  , colorsNeutral
                                                  , dayFirst
                                                  , dailyActive ) ] }
-          , options: { scales: scales } } ) );
+          , options:
+            { scales: scales
+            , tooltips:
+              { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } ) );
 
     charts.push
       ( new Chart
@@ -280,7 +307,10 @@ window.onload = function() {
                                  , colorsNeutral
                                  , dayFirst
                                  , dailyHospitalized ) ] }
-          , options: { scales: scales } } ) );
+          , options:
+            { scales: scales
+            , tooltips:
+              { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } ) );
 
     charts.push
       ( new Chart
@@ -295,6 +325,9 @@ window.onload = function() {
                                   , colorsNew
                                   , dayFirst
                                   , windowSums(20, dailyHospitalized) ) ] }
-          , options: { scales: scales } } ) );
+          , options:
+            { scales: scales
+            , tooltips:
+              { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } ) );
   };
 };
