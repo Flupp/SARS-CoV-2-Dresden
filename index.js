@@ -170,6 +170,7 @@ window.onload = function() {
     const dayLast  = data[data.length - 1].Datum_neu;
 
     const daily7DayIncidenceOld = data.map(o => o.Inzidenz);
+    const daily7DayIncidenceRKI = data.map(o => o.Inzidenz_RKI);
     const dailyNew              = data.map(o => o.Fälle_Meldedatum);
     const dailyDeaths           = data.map(o => o.SterbeF_Meldedatum);
     const dailyRecovered        = data.map(o => o.Zuwachs_Genesung);
@@ -232,6 +233,10 @@ window.onload = function() {
               [ { backgroundColor: '#000000'
                 , data: toTimeSeries(dayFirst, daily7DayIncidenceOld)
                 , label: 'historisch'
+                , type: 'scatter' }
+              , { backgroundColor: '#003F97'
+                , data: toTimeSeries(dayFirst, daily7DayIncidenceRKI)
+                , label: 'RKI'
                 , type: 'scatter' }
               , createBarDataset ( 'aktuell'
                                  , colorsNeutral
