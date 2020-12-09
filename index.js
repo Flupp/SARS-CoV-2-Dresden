@@ -287,7 +287,7 @@ window.onload = function() {
                                  , ticks: { min: xMin, max: xMax }
                                  , time: timeScale
                                  , type: 'time' } ]
-                      , yAxes: [ { } ] }
+                      , yAxes: [ { stacked: true } ] }
             , tooltips:
               { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } ) );
 
