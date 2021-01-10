@@ -176,6 +176,13 @@ window.onload = function() {
     const dailyRecovered        = data.map(o => o.Zuwachs_Genesung);
     const dailyHospitalized     = data.map(o => o.Hosp_Meldedatum);
 
+    const accumNew = [];
+    let sum = 0;
+    for (const n of dailyNew) {
+      sum += n;
+      accumNew.push(sum);
+    }
+
     const dailyActive = [];
     let todayActive = 0;
     for (const o of data) {
@@ -334,5 +341,79 @@ window.onload = function() {
             { scales: scales
             , tooltips:
               { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } ) );
+
+    const chartPrevalence
+      = new Chart
+        ( document.getElementById('canvasPrevalence').getContext('2d')
+        , { data:
+            { datasets: [ ] }
+          , options:
+            { scales: { xAxes: [ { ticks: { min: xMin, max: xMax }
+                                 , time: timeScale
+                                 , type: 'time' } ]
+                      , yAxes: [ { ticks: { callback: function(value, index, values) {  // eslint-disable-line no-unused-vars
+                                              return value + ' %';
+                                            }
+                                          , min: 0 } } ] }
+            , tooltips:
+              { callbacks: { label: tooltipCallbackLabelRounded } } } } );
+    charts.push(chartPrevalence);
+
+    const updateChartPrevalence = function() {
+      const detectionRate = 0.01 * Number(document.getElementById('inputPrevalenceDetectionRate').value);
+      chartPrevalence.data.datasets
+        = [ createLineDataset ( 'Durchseuchung'
+                              , colorsNeutral
+                              , dayFirst
+                              , accumNew.map(n => 100 * n / POPULATION_SIZE / detectionRate) ) ];
+      chartPrevalence.update();
+    };
+    updateChartPrevalence();
+    document.getElementById('inputPrevalenceDetectionRate').oninput
+      = updateChartPrevalence;
+
+    const probabilityChart
+      = new Chart
+        ( document.getElementById('canvasProbability').getContext('2d')
+        , { data: { datasets: [ ] }
+          , options:
+            { scales: { xAxes: [ { ticks: { min: xMin, max: xMax }
+                                 , time: timeScale
+                                 , type: 'time' } ]
+                      , yAxes: [ { ticks: { callback: function(value, index, values) {  // eslint-disable-line no-unused-vars
+                                              return value + ' %';
+                                            }
+                                          , min: 0 } } ] }
+            , tooltips:
+              { callbacks: { label: tooltipCallbackLabelRounded } } } } );
+    charts.push(probabilityChart);
+
+    const updateProbabilityChart = function() {
+      const detectionRate = 0.01 * Number(document.getElementById('inputProbabilityDetectionRate').value);
+      const windowSize = Number(document.getElementById('inputProbabilityInfectiousDays').value);
+      const groupSize = Number(document.getElementById('inputProbabilityGroupSize').value);
+
+      const infectious = windowSums(windowSize, windowSums(7, dailyNew).map(x => x / 7));
+
+      const dailyProbability = [];
+      for (let i = 0; i < infectious.length; ++i) {
+        const denom = POPULATION_SIZE - (i < windowSize ? 0 : dailyActive[i - windowSize]);
+        const num = Math.max(0, denom - infectious[i] / detectionRate);
+        dailyProbability.push(100 * (1 - Math.pow(num / denom, groupSize)));
+      }
+      probabilityChart.data.datasets
+        = [ createLineDataset ( 'Kontaktrisiko'
+                              , colorsNeutral
+                              , dayFirst - SAMPLE_INTERVAL * windowSize
+                              , dailyProbability ) ];
+      probabilityChart.update();
+    };
+    updateProbabilityChart();
+    document.getElementById('inputProbabilityDetectionRate').oninput
+      = updateProbabilityChart;
+    document.getElementById('inputProbabilityInfectiousDays').oninput
+      = updateProbabilityChart;
+    document.getElementById('inputProbabilityGroupSize').oninput
+      = updateProbabilityChart;
   };
 };

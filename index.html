@@ -26,17 +26,52 @@
 			padding: 0.5rem;
 			text-align: center;
 		}
+		main h1 {
+			margin: 1em -0.5rem 0;
+		}
+		.warning {
+			background-color: #FDD;
+			background: repeating-linear-gradient(-45deg, #FDD, #FDD 1rem, transparent 1rem, transparent 2rem);
+			border-top: 1px solid #FDD;
+		}
 		h2 {
-			border-top: 1px solid #CCC;
-			margin: 0.5em 0 0.5em;
+			margin: 0.5em 0;
 			padding: 0.5em 0 0;
 		}
-		h2:first-child {
-			border-top-width: 0;
+		h2:not(:first-of-type) {
+			border-top: 1px solid #CCC;
 		}
 		p {
 			margin: 0.5em 0;
 			padding: 0;
+		}
+		dl {
+			margin: 0.5em 0;
+			padding-left: 7em;
+		}
+		dt {
+			box-sizing: border-box;
+			display: inline-block;
+			margin-left: -6.5em;
+			min-width: 6.5em;
+			padding-right: 0.5em;
+		}
+		dd {
+			display: inline;
+			margin:0;
+			padding:0;
+		}
+		dd::after {
+			content:"";
+			display:block;
+			margin-bottom: 0.25em;
+		}
+		ul {
+			margin: 0.5em 0 0.5em 1.5em;
+			padding: 0;
+		}
+		li {
+			margin: 0.25em 0;
 		}
 		form {
 			background-color: #EEE;
@@ -55,6 +90,26 @@
 			margin: 1rem 0 0;
 			padding: 0.5rem;
 			text-align: center;
+		}
+		.align {
+			border-spacing: 0.5em 0.5em;
+			display: table;
+			margin: -0.5em auto;
+		}
+		.align > p {
+			display: table-row;
+		}
+		.align > p > span {
+			display: table-cell;
+		}
+		.align > p > span:nth-child(3n+1) {
+			text-align: right;
+		}
+		.align > p > span:nth-child(3n+2) {
+			text-align: center;
+		}
+		.align > p > span:nth-child(3n+3) {
+			text-align: left;
 		}
 	</style>
 </head>
@@ -107,6 +162,11 @@
 		</div>
 
 
+		<h1 class="warning">Spekulationsbereich</h1>
+
+		<p>Die in diesem Abschnitt dargestellten Diagramme sind Schätzungen auf Basis der tatsächlichen Daten. Die den Schätzungen zu Grunde liegenden Annahmen sind teils sehr vereinfachend; entsprechend sind die Schätzungen mit Vorsicht zu genießen.</p>
+
+
 		<h2>Im Krankenhaus (geschätzt)</h2>
 
 		<p>Schätzung auf Basis der täglichen Hospitalisierungen. Für die verschiedenen Kurven werden verschiedene Verweilzeiten angenommen.</p>
@@ -114,6 +174,127 @@
 		<div class="chart-container">
 			<canvas id="canvasInHospital"></canvas>
 		</div>
+
+
+		<h2>Durchseuchung (geschätzt)</h2>
+
+		<p>Schätzung des Anteils der Bevölkerung, der bereits infiziert war.</p>
+
+		<p>Variablen:</p>
+
+		<dl>
+			<dt><var>Fallzahl</var><sub><var>t</var></sub></dt>
+			<dd>Akkumulierte Anzahl erkannter Fälle bis zum Tag <var>t</var>.</dd>
+
+			<dt><var>Erkennungsrate</var></dt>
+			<dd>Vermutetes Verhältnis der Zahl der erkannten Fälle zur tatsächlichen Fallzahl.</dd>
+		</dl>
+
+		<p>Berechnung:</p>
+
+		<div class="align">
+			<p>
+				<span><var>Durchseuchung</var><sub><var>t</var></sub></span>
+				<span>=</span>
+				<span>(<var>Fallzahl</var><sub><var>t</var></sub> ÷ <var>Erkennungsrate</var>) ÷ <var>Einwohnerzahl</var></span>
+			</p>
+		</div>
+
+		<p>Parameter:</p>
+
+		<ul>
+			<li>
+				<label for="inputPrevalenceDetectionRate"><var>Erkennungsrate</var>:</label>
+				<input id="inputPrevalenceDetectionRate" type="number" min="0" max="100" value="25" size="3"> %
+			</li>
+		</ul>
+
+		<div class="chart-container">
+			<canvas id="canvasPrevalence"></canvas>
+		</div>
+
+
+		<h2>Kontaktrisiko (geschätzt)</h2>
+
+		<p>Stark vereinfachte Schätzung der Wahrscheinlichkeit, mit einer ansteckenden Person Kontakt zu haben.</p>
+
+		<p>Variablen:</p>
+
+		<dl>
+			<dt><var>neu</var><sub><var>t</var></sub></dt>
+			<dd>Neu erkannte Fälle am Tag <var>t</var>.</dd>
+
+			<dt><var>neu′</var><sub><var>t</var></sub></dt>
+			<dd>Über sieben Tage geglättete Anzahlen neu erkannter Fälle.</dd>
+
+			<dt><var>Erkennungsrate</var></dt>
+			<dd>Vermutetes Verhältnis der Zahl der erkannten Fälle zur tatsächlichen Fallzahl.</dd>
+
+			<dt><var>d</var></dt>
+			<dd>Vermutete Dauer in Tagen, die eine infizierte Person ansteckend aber noch nicht erkannt ist. Es wird angenommen, dass sich erkannte Fälle umgehend in Isolation begeben.</dd>
+
+			<dt><var>ansteckend</var><sub><var>t</var></sub></dt>
+			<dd>Anzahl von Personen, die am Tag <var>t</var> ansteckend sind und denen man begegnen kann.</dd>
+
+			<dt><var>aktiv</var><sub><var>t</var></dt>
+			<dd>Aktive Fälle am Tag <var>t</var>. Es wird angenommen, dass sich aktive Fälle in Isolation befinden.</dd>
+
+			<dt><var>inaktiv</var><sub><var>t</var></sub></dt>
+			<dd>Anzahl von Personen bei denen am Tag <var>t</var> keine Infektion bekannt ist. Von diesen Personen wird angenommen, dass man ihnen begegnen kann.</dd>
+
+			<dt><var>Kontaktanzahl</var></dt>
+			<dd>Anzahl unterschiedlicher Personen mit denen man an einem Tag Kontakt hat.</dd>
+		</dl>
+
+		<p>Berechnung:</p>
+
+		<div class="align">
+			<p>
+				<span><var>neu′</var><sub><var>t</var></sub></span>
+				<span>=</span>
+				<span>⅐ ⋅ ∑<sub><var>i</var> ∈ {0, …, 6}</sub> <var>neu</var><sub><var>t</var>−<var>i</var></sub></var>
+			</p>
+
+			<p>
+				<span><var>ansteckend</var><sub><var>t</var></sub></span>
+				<span>=</span>
+				<span>∑<sub><var>i</var> ∈ {1, …, <var>d</var>}</sub> <var>neu′</var><sub><var>t</var>+<var>i</var></sub> ÷ <var>Erkennungsrate</var>
+			</p>
+
+			<p>
+				<span><var>inaktiv</var><sub><var>t</var></sub></span>
+				<span>=</span>
+				<span><var>Einwohnerzahl</var> − <var>aktiv</var><sub><var>t</var></span>
+			</p>
+
+			<p>
+				<span><var>Kontaktrisiko</var><sub><var>t</var></sub></span>
+				<span>=</span>
+				<span>1 − (1 − <var>ansteckend</var><sub><var>t</var></sub> ÷ <var>inaktiv</var><sub><var>t</var></sub>)<sup><var>Kontaktanzahl</var></sup></span>
+			</p>
+		</div>
+
+		<p>Parameter:</p>
+
+		<ul>
+			<li>
+				<label for="inputProbabilityDetectionRate"><var>Erkennungsrate</var>:</label>
+				<input id="inputProbabilityDetectionRate" type="number" min="0" max="100" value="25" size="3"> %
+			</li>
+			<li>
+				<label for="inputProbabilityInfectiousDays">unerkannt ansteckende Tage <var>d</var>:</label>
+				<input id="inputProbabilityInfectiousDays" type="number" min="1" max="28" value="4" size="2"> Tage
+			</li>
+			<li>
+				<label for="inputProbabilityGroupSize"><var>Kontaktanzahl</var>:</label>
+				<input id="inputProbabilityGroupSize" type="number" min="1" max="556780" value="20" size="6">
+			</li>
+		</ul>
+
+		<div class="chart-container">
+			<canvas id="canvasProbability"></canvas>
+		</div>
+
 	</main>
 
 	<footer>
