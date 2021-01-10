@@ -216,12 +216,12 @@ window.onload = function() {
       = { displayFormats: { week: 'MMM DD' }
         , isoWeekday: true
         , tooltipFormat: 'YYYY-MM-DD / YYYY-[W]WW-E'
-        , unit: 'week' }
+        , unit: 'week' };
     const scales
       = { xAxes: [ { ticks: { min: xMin, max: xMax }
                    , time: timeScale
                    , type: 'time' } ]
-        , yAxes: [ { } ] }
+        , yAxes: [ { } ] };
 
     const daily7DayIncidence = windowSums(7, dailyNew).map(y => y * INCIDENCE_FACTOR);
     daily7DayIncidence.unshift(0);  // the 7 day incidence refers to the last 7 days *before* the current day
