@@ -172,7 +172,7 @@ window.onload = function() {
     const daily7DayIncidenceOld = data.map(o => o.Inzidenz);
     const daily7DayIncidenceRKI = data.map(o => o.Inzidenz_RKI);
     const dailyNew              = data.map(o => o.Fälle_Meldedatum);
-    const dailyDeaths           = data.map(o => o.SterbeF_Meldedatum);
+    const dailyDeaths           = data.map(o => o.SterbeF_Sterbedatum);
     const dailyRecovered        = data.map(o => o.Zuwachs_Genesung);
     const dailyHospitalized     = data.map(o => o.Hosp_Meldedatum);
 
@@ -186,7 +186,7 @@ window.onload = function() {
     const dailyActive = [];
     let todayActive = 0;
     for (const o of data) {
-      todayActive += o.Fälle_Meldedatum - o.Zuwachs_Genesung - o.SterbeF_Meldedatum;
+      todayActive += o.Fälle_Meldedatum - o.Zuwachs_Genesung - o.SterbeF_Sterbedatum;
       dailyActive.push(todayActive);
     }
 
