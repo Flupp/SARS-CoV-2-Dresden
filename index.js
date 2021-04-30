@@ -249,23 +249,16 @@ window.onload = function() {
                                  , colorsNeutral
                                  , dayFirst
                                  , daily7DayIncidence )
-              , { backgroundColor: colorsNew.light
-                , borderColor: colorsNew.light
+              , { backgroundColor: '#84170e'
+                , borderColor: '#84170e'
                 , borderWidth: 1
                 , fill: false
-                , label: '50'
+                , label: 'IfSG'
                 , pointHoverRadius: 0
                 , pointRadius: 0
-                , data: [ { x: 0, y: 50 }, { x: xMax, y: 50 } ]
-                , type: 'line' }
-              , { backgroundColor: colorsNew.dark
-                , borderColor: colorsNew.dark
-                , borderWidth: 1
-                , fill: false
-                , label: '200'
-                , pointHoverRadius: 0
-                , pointRadius: 0
-                , data: [ { x: 0, y: 200 }, { x: xMax, y: 200 } ]
+                , data: [ { x: 0, y: 100 }, { x: xMax + SAMPLE_INTERVAL, y: 100 }
+                        , { x: xMax + SAMPLE_INTERVAL, y: 150 }, { x: 0, y: 150 }
+                        , { x: 0, y: 165 }, { x: xMax + SAMPLE_INTERVAL, y: 165 } ]
                 , type: 'line' } ] }
           , options:
             { scales: scales
