@@ -98,6 +98,9 @@ footer {
 	padding: 0.5rem;
 	text-align: center;
 }
+input[type=number] {
+	max-width: 6em;
+}
 .align {
 	border-spacing: 0.5em 0.5em;
 	display: table;
