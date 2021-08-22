@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="de">
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="referrer" content="no-referrer">
+	<title>SARS-CoV-2 – Links</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<h1>SARS-CoV-2 – Links</h1>
+	<header>
+		<p>Selektive Linksammlung rund um SARS-CoV-2 mit Fokus auf Dresden und Datenvisualisierung.</p>
+	</header>
+
+	<main>
+		<h2>Dresden</h2>
+
+		<h3>Offiziell</h3>
+		<ul>
+			<li><a href="https://www.dresden.de/de/leben/gesundheit/hygiene/infektionsschutz/corona.php">Aktuelle Informationen zum Umgang mit der Corona-Pandemie in Dresden</a></li>
+			<li><a href="https://experience.arcgis.com/experience/d2386f3214c1451c81b242be69bb3d50">Corona-Dashboard Dresden</a></li>
+			<li><a href="https://stva-dd.maps.arcgis.com/apps/opsdashboard/index.html#/d2fdad8856a6448181da28610ea6de5d">Dashboard Gemeinschaftseinrichtungen</a></li>
+		</ul>
+
+		<h3>Hobby-Projekte</h3>
+		<ul>
+			<li><a href="https://github.com/Flupp">Flupp</a>: <a href="https://flupp.github.io/SARS-CoV-2-Dresden/">SARS-CoV-2 Dresden</a> (<a href="https://github.com/Flupp/SARS-CoV-2-Dresden">GitHub-Projekt</a>)</li>
+			<li><a href="https://github.com/jdieg0">jdieg0</a>: <a href="https://coronavirus-dresden.de/">SARS-CoV-2-Dashboard Dresden</a> (<a href="https://github.com/jdieg0/coronavirus-dresden">GitHub-Projekt</a>)</li>
+		</ul>
+
+		<h2>Sachsen</h2>
+		<ul>
+			<li><a href="https://www.coronavirus.sachsen.de/amtliche-bekanntmachungen.html">Amtliche Bekanntmachungen</a></li>
+			<li><a href="https://www.coronavirus.sachsen.de/infektionsfaelle-in-sachsen-4151.html">Infektionsfälle in Sachsen</a></li>
+		</ul>
+
+		<h2>Deutschland</h2>
+
+		<h3>Robert<a href="https://www.rechtschreibrat.com/DOX/rfdr_Regeln_2016_redigiert_2018.pdf" style="color: #CCC; text-decoration: none;" title="§ 50">-</a>Koch-Institut (RKI)</h3>
+		<ul>
+			<li><a href="https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Situationsberichte/Gesamt.html">Lage-/Situationsberichte</a></li>
+			<li><a href="https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Situationsberichte/COVID-19-Trends/COVID-19-Trends.html?__blob=publicationFile">COVID-19-Trends in Deutschland im Überblick</a></li>
+		</ul>
+
+		<h3>Sonstige</h3>
+		<ul>
+			<li><a href="https://impfdashboard.de/">Impfdashboard des Bundesministeriums für Gesundheit</a></li>
+			<li><a href="https://experience.arcgis.com/experience/3a132983ad3c4ab8a28704e9addefaba">Dashboard DIVI-Intensivregister auf Landkreisebene</a></li>
+			<li><a href="https://www.zidatasciencelab.de/covid19dashboard/Start.html">Zi-Frühindikatoren zu COVID-19</a> (<a href="https://github.com/zidatalab/covid19dashboard">GitHub-Projekt</a>)</li>
+			<li><a href="https://www.zeit.de/wissen/corona-karte-deutschland-aktuelle-zahlen-landkreise">Zeit Online: Coronavirus-Karte für Deutschland</a></li>
+		</ul>
+
+		<h2>Weltweit</h2>
+		<ul>
+			<li><a href="https://query.wikidata.org/#SELECT%20%3Fstate%20%3FstateLabel%20%3Fpopulation%20%3FstateDivGermany%20%3FgermanyDivState%0AWHERE%0A%7B%0A%20%20%3Fstate%20wdt%3AP31%20wd%3AQ3624078%3B%0A%20%20%20%20%20%20%20%20%20wdt%3AP1082%20%3Fpopulation.%0A%20%20wd%3AQ183%20wdt%3AP1082%20%3FgermanPopulation.%0A%20%20BIND%280.01%20%2a%20round%28100%20%2a%20%3Fpopulation%20%2F%20%3FgermanPopulation%29%20AS%20%3FstateDivGermany%29.%0A%20%20BIND%280.01%20%2a%20round%28100%20%2a%20%3FgermanPopulation%20%2F%20%3Fpopulation%29%20AS%20%3FgermanyDivState%29.%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22%5BAUTO_LANGUAGE%5D%2Cen%22%20%7D%0A%7D%0AORDER%20BY%20DESC%28%3Fpopulation%29">Wikidata: Einwohnerzahlen aller Länder im Vergleich zu Deutschland</a></li>
+			<li><a href="https://ourworldindata.org/coronavirus-data-explorer">Our World in Data: COVID-19 Data Explorer</a></li>
+			<li><a href="https://www.worldometers.info/coronavirus/">Worldometer: COVID-19 Coronavirus Pandemic</a></li>
+			<li><a href="https://interaktiv.morgenpost.de/corona-virus-karte-infektionen-deutschland-weltweit/">Berliner Morgenpost: Coronavirus-Monitor</a></li>
+		</ul>
+	</main>
+
+	<footer>
+		alle Angaben ohne Gewähr • <a href="https://github.com/Flupp/SARS-CoV-2-Dresden">GitHub-Projekt</a>
+	</footer>
+</body>
+</html>
+<!-- kate: default-dictionary de_DE; -->
