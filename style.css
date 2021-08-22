@@ -1,5 +1,11 @@
 html {
+	background-color: #EEE;
+	color: black;
 	font-family: Helvetica, Arial, sans-serif;
+}
+body {
+	background-color: white;
+	color: black;
 }
 body, html, input {
 	margin: 0;
@@ -11,6 +17,7 @@ header, main {
 }
 h1 {
 	background-color: #EEE;
+	color: black;
 	margin: 0;
 	padding: 0.5rem;
 	text-align: center;
@@ -20,6 +27,7 @@ main h1 {
 }
 .warning {
 	background-color: #FDD;
+	color: black;
 	background: repeating-linear-gradient(-45deg, #FDD, #FDD 1rem, transparent 1rem, transparent 2rem);
 	border-top: 1px solid #FDD;
 }
@@ -72,6 +80,7 @@ li {
 }
 form {
 	background-color: #EEE;
+	color: black;
 	box-sizing: border-box;
 	display: flex;
 	flex-wrap: wrap;
@@ -84,6 +93,7 @@ form {
 }
 footer {
 	background-color: #EEE;
+	color: black;
 	margin: 1rem 0 0;
 	padding: 0.5rem;
 	text-align: center;
