@@ -25,6 +25,63 @@ luxon.Settings.defaultZone = 'utc';
 luxon.Settings.defaultLocale = 'de';
 
 
+// Returns the largest number in {n ⋅ interval + offset | n ∈ ℤ} that is less
+// than or equal to x.
+function intervalFloor(interval, offset, x) {
+  return Math.floor((x - offset) / interval) * interval + offset;
+}
+
+// plugin for drawing a gray backround behind weekends
+const shadeWeekends = {
+  id: 'shadeWeekends',
+  beforeDraw(chart /* , args, options */) {
+    const interval = 7   * 24 * 3600 * 1000;  // 1 week
+    const offsetLo = 1.5 * 24 * 3600 * 1000;  // Fri, 02 Jan 1970 12:00:00 GMT
+    const offsetHi = 3.5 * 24 * 3600 * 1000;  // Sun, 04 Jan 1970 12:00:00 GMT
+
+    const {ctx, chartArea: {left, right, top, bottom}, scales: {x}} = chart;
+    const min = x.getValueForPixel(left);
+    const max = x.getValueForPixel(right);
+
+    let lower = intervalFloor(interval, offsetLo, min);
+    let upper = lower + (offsetHi - offsetLo);
+    if (upper <= min) {
+      lower += interval;
+      if (lower >= max) {
+        return;
+      }
+      upper = lower + (offsetHi - offsetLo);
+    } else if (lower < min) {
+      lower = min;
+    }
+    if (upper > max) {
+      upper = max;
+    }
+
+    function fillLowerToUpper() {
+      const x1 = x.getPixelForValue(lower);
+      const x2 = x.getPixelForValue(upper);
+      ctx.fillRect(x1, top, x2 - x1, bottom - top);
+    }
+
+    ctx.save();
+    ctx.fillStyle = '#EEEEEE';
+    fillLowerToUpper();
+
+    lower = intervalFloor(interval, offsetLo, lower + interval);
+    while (lower < max) {
+        upper = lower + (offsetHi - offsetLo);
+        if (upper > max) {
+            upper = max;
+        }
+        fillLowerToUpper();
+        lower += interval;
+    }
+    ctx.restore();
+  }
+};
+
+
 function figureSpaceFill(x) {
   return ' '.repeat  // U+2007 FIGURE SPACE
          ( Math.max
@@ -216,12 +273,12 @@ window.onload = function() {
     };
 
     const timeScale
-      = { displayFormats: { week: 'd. MMM' }
+      = { displayFormats: { week: 'd. MMM', month: 'MMM' }
         , isoWeekday: true
         , tooltipFormat: "kkkk-LL-dd / kkkk-'W'WW-c"
-        , unit: 'week' };
+        , minUnit: 'month' };
     const scaleX
-      = { grid: { offset: false }
+      = { grid: { drawOnChartArea: false, offset: false }
         , min: xMin
         , max: xMax
         , offset: false
@@ -261,7 +318,8 @@ window.onload = function() {
             { scales: { x: scaleX }
             , plugins:
               { tooltip:
-                { callbacks: { label: tooltipCallbackLabelRounded } } } } } ) );
+                { callbacks: { label: tooltipCallbackLabelRounded } } } }
+          , plugins: [shadeWeekends] } ) );
 
     charts.push
       ( new Chart
@@ -281,7 +339,7 @@ window.onload = function() {
                                  , dayFirst
                                  , dailyRecovered.map(y => -y) ) ] }
           , options:
-            { scales: { x: { grid: { offset: false }
+            { scales: { x: { grid: { drawOnChartArea: false, offset: false }
                            , min: xMin
                            , max: xMax
                            , offset: false
@@ -291,7 +349,8 @@ window.onload = function() {
                       , y: { stacked: true } }
             , plugins:
               { tooltip:
-                { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } } ) );
+                { callbacks: { label: tooltipCallbackLabelWithInzidence } } } }
+          , plugins: [shadeWeekends] } ) );
 
     charts.push
       ( new Chart
@@ -304,7 +363,8 @@ window.onload = function() {
             { scales: { x: scaleX }
             , plugins:
               { tooltip:
-                { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } } ) );
+                { callbacks: { label: tooltipCallbackLabelWithInzidence } } } }
+          , plugins: [shadeWeekends] } ) );
 
     charts.push
       ( new Chart
@@ -319,7 +379,8 @@ window.onload = function() {
             { scales: { x: scaleX }
             , plugins:
               { tooltip:
-                { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } } ) );
+                { callbacks: { label: tooltipCallbackLabelWithInzidence } } } }
+          , plugins: [shadeWeekends] } ) );
 
     charts.push
       ( new Chart
@@ -338,7 +399,8 @@ window.onload = function() {
             { scales: { x: scaleX, y: { min: 0 } }
             , plugins:
               { tooltip:
-                { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } } ) );
+                { callbacks: { label: tooltipCallbackLabelWithInzidence } } } }
+          , plugins: [shadeWeekends] } ) );
 
     const chartPrevalence
       = new Chart
@@ -354,7 +416,8 @@ window.onload = function() {
                                    return value + ' %'; } } } }
             , plugins:
               { tooltip:
-                { callbacks: { label: tooltipCallbackLabelRounded } } } } } );
+                { callbacks: { label: tooltipCallbackLabelRounded } } } }
+          , plugins: [shadeWeekends] } );
     charts.push(chartPrevalence);
 
     const updateChartPrevalence = function() {
@@ -384,7 +447,8 @@ window.onload = function() {
                                  } } } }
             , plugins:
               { tooltip:
-                { callbacks: { label: tooltipCallbackLabelRounded } } } } } );
+                { callbacks: { label: tooltipCallbackLabelRounded } } } }
+          , plugins: [shadeWeekends] } );
     charts.push(probabilityChart);
 
     const updateProbabilityChart = function() {
