@@ -5,7 +5,8 @@
     },
     "extends": "eslint:recommended",
     "globals": {
-        "Chart": "readonly"
+        "Chart": "readonly",
+        "luxon": "readonly"
     },
     "parserOptions": {
         "ecmaVersion": 12

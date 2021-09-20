@@ -1,0 +1,2 @@
+https://cdn.jsdelivr.net/npm/luxon@2.0.2/LICENSE.md
+https://cdn.jsdelivr.net/npm/luxon@2.0.2/build/global/luxon.min.js

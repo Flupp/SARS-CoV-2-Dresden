@@ -16,12 +16,13 @@ const colorsDeceased  = { dark:  'hsl(  0,   0%, 30%)'
 const colorsRecovered = { dark:  'hsl(160, 100%, 30%)'
                         , light: 'hsl(160, 100%, 50%)' };
 
-Chart.defaults.global.animation.duration = 0;
-Chart.defaults.global.hover.animationDuration = 0;
-Chart.defaults.global.maintainAspectRatio = false;
-Chart.defaults.global.responsiveAnimationDuration = 0;
-Chart.defaults.global.tooltips.itemSort = (a, b) => a.y - b.y;
-Chart.defaults.global.tooltips.mode = 'index';
+Chart.defaults.animation = false;
+Chart.defaults.maintainAspectRatio = false;
+Chart.defaults.plugins.tooltip.itemSort = (a, b) => b.parsed.y - a.parsed.y;
+Chart.defaults.plugins.tooltip.mode = 'index';
+
+luxon.Settings.defaultZone = 'utc';
+luxon.Settings.defaultLocale = 'de';
 
 
 function figureSpaceFill(x) {
@@ -38,18 +39,14 @@ function figureSpaceFill(x) {
 }
 
 
-function tooltipCallbackLabelRounded(tooltipItem, data) {
-  return figureSpaceFill(data.datasets[tooltipItem.datasetIndex]
-                             .data[tooltipItem.index]
-                             .y.toFixed(1));
+function tooltipCallbackLabelRounded(context) {
+  return figureSpaceFill(context.parsed.y.toFixed(1));
 }
 
 
 // Note: negative values are rendered without sign
-function tooltipCallbackLabelWithInzidence(tooltipItem, data) {
-  const y = Math.abs(data.datasets[tooltipItem.datasetIndex]
-                         .data[tooltipItem.index]
-                         .y);
+function tooltipCallbackLabelWithInzidence(context) {
+  const y = Math.abs(context.parsed.y);
   return figureSpaceFill(y)
        +  ' '  // U+2002 EN SPACE
        +  figureSpaceFill((INCIDENCE_FACTOR * y).toFixed(1))
@@ -133,7 +130,6 @@ function createLineDataset(label, colors, startTime, data) {
          , borderWidth: 1
          , cubicInterpolationMode: 'monotone'
          , data: timeSeries
-         , fill: false
          , label: label
          , pointBorderColor: colorSequence
          , type: 'line' };
@@ -194,7 +190,7 @@ window.onload = function() {
     const xMin = Math.max(dayFirst, dayLast - 70 * SAMPLE_INTERVAL);
     const xMax = dayLast + 1.5 * SAMPLE_INTERVAL;
       // add more than one because last incidence is in future
-    Chart.defaults.global.elements.point.radius = calcPointRadius(xMin, xMax);
+    Chart.defaults.elements.point.radius = calcPointRadius(xMin, xMax);
 
     {
       const slider = document.getElementById('idxFirst');
@@ -205,7 +201,7 @@ window.onload = function() {
         const r = calcPointRadius(this.value, this.max);
         for (const chart of charts) {
           chart.options.elements.point.radius = r;
-          chart.options.scales.xAxes[0].ticks.min = Number(this.value);
+          chart.options.scales.x.min = Number(this.value);
           chart.update();
         }
       };
@@ -220,15 +216,17 @@ window.onload = function() {
     };
 
     const timeScale
-      = { displayFormats: { week: 'MMM DD' }
+      = { displayFormats: { week: 'd. MMM' }
         , isoWeekday: true
-        , tooltipFormat: 'YYYY-MM-DD / YYYY-[W]WW-E'
+        , tooltipFormat: "kkkk-LL-dd / kkkk-'W'WW-c"
         , unit: 'week' };
-    const scales
-      = { xAxes: [ { ticks: { min: xMin, max: xMax }
-                   , time: timeScale
-                   , type: 'time' } ]
-        , yAxes: [ { } ] };
+    const scaleX
+      = { grid: { offset: false }
+        , min: xMin
+        , max: xMax
+        , offset: false
+        , time: timeScale
+        , type: 'time' };
 
     const daily7DayIncidence = windowSums(7, dailyNew).map(y => y * INCIDENCE_FACTOR);
     daily7DayIncidence.unshift(0);  // the 7 day incidence refers to the last 7 days *before* the current day
@@ -252,7 +250,6 @@ window.onload = function() {
               , { backgroundColor: '#84170e'
                 , borderColor: '#84170e'
                 , borderWidth: 1
-                , fill: false
                 , label: 'IfSG'
                 , pointHoverRadius: 0
                 , pointRadius: 0
@@ -261,9 +258,10 @@ window.onload = function() {
                         , { x: 0, y: 165 }, { x: xMax + SAMPLE_INTERVAL, y: 165 } ]
                 , type: 'line' } ] }
           , options:
-            { scales: scales
-            , tooltips:
-              { callbacks: { label: tooltipCallbackLabelRounded } } } } ) );
+            { scales: { x: scaleX }
+            , plugins:
+              { tooltip:
+                { callbacks: { label: tooltipCallbackLabelRounded } } } } } ) );
 
     charts.push
       ( new Chart
@@ -283,13 +281,17 @@ window.onload = function() {
                                  , dayFirst
                                  , dailyRecovered.map(y => -y) ) ] }
           , options:
-            { scales: { xAxes: [ { stacked: true
-                                 , ticks: { min: xMin, max: xMax }
-                                 , time: timeScale
-                                 , type: 'time' } ]
-                      , yAxes: [ { stacked: true } ] }
-            , tooltips:
-              { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } ) );
+            { scales: { x: { grid: { offset: false }
+                           , min: xMin
+                           , max: xMax
+                           , offset: false
+                           , stacked: true
+                           , time: timeScale
+                           , type: 'time' }
+                      , y: { stacked: true } }
+            , plugins:
+              { tooltip:
+                { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } } ) );
 
     charts.push
       ( new Chart
@@ -299,9 +301,10 @@ window.onload = function() {
                                                  , dayFirst
                                                  , dailyActive ) ] }
           , options:
-            { scales: scales
-            , tooltips:
-              { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } ) );
+            { scales: { x: scaleX }
+            , plugins:
+              { tooltip:
+                { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } } ) );
 
     charts.push
       ( new Chart
@@ -313,9 +316,10 @@ window.onload = function() {
                                  , dayFirst
                                  , dailyHospitalized ) ] }
           , options:
-            { scales: scales
-            , tooltips:
-              { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } ) );
+            { scales: { x: scaleX }
+            , plugins:
+              { tooltip:
+                { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } } ) );
 
     charts.push
       ( new Chart
@@ -331,9 +335,10 @@ window.onload = function() {
                                   , dayFirst
                                   , windowSums(20, dailyHospitalized) ) ] }
           , options:
-            { scales: scales
-            , tooltips:
-              { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } ) );
+            { scales: { x: scaleX, y: { min: 0 } }
+            , plugins:
+              { tooltip:
+                { callbacks: { label: tooltipCallbackLabelWithInzidence } } } } } ) );
 
     const chartPrevalence
       = new Chart
@@ -341,15 +346,15 @@ window.onload = function() {
         , { data:
             { datasets: [ ] }
           , options:
-            { scales: { xAxes: [ { ticks: { min: xMin, max: xMax }
-                                 , time: timeScale
-                                 , type: 'time' } ]
-                      , yAxes: [ { ticks: { callback: function(value, index, values) {  // eslint-disable-line no-unused-vars
-                                              return value + ' %';
-                                            }
-                                          , min: 0 } } ] }
-            , tooltips:
-              { callbacks: { label: tooltipCallbackLabelRounded } } } } );
+            { scales: { x: scaleX
+                      , y: { min: 0
+                           , ticks:
+                             { callback:
+                                 function(value, index, values) {  // eslint-disable-line no-unused-vars
+                                   return value + ' %'; } } } }
+            , plugins:
+              { tooltip:
+                { callbacks: { label: tooltipCallbackLabelRounded } } } } } );
     charts.push(chartPrevalence);
 
     const updateChartPrevalence = function() {
@@ -370,15 +375,16 @@ window.onload = function() {
         ( document.getElementById('canvasProbability').getContext('2d')
         , { data: { datasets: [ ] }
           , options:
-            { scales: { xAxes: [ { ticks: { min: xMin, max: xMax }
-                                 , time: timeScale
-                                 , type: 'time' } ]
-                      , yAxes: [ { ticks: { callback: function(value, index, values) {  // eslint-disable-line no-unused-vars
-                                              return value + ' %';
-                                            }
-                                          , min: 0 } } ] }
-            , tooltips:
-              { callbacks: { label: tooltipCallbackLabelRounded } } } } );
+            { scales: { x: scaleX
+                      , y: { min: 0
+                           , ticks:
+                             { callback:
+                                 function(value, index, values) {  // eslint-disable-line no-unused-vars
+                                   return value + ' %';
+                                 } } } }
+            , plugins:
+              { tooltip:
+                { callbacks: { label: tooltipCallbackLabelRounded } } } } } );
     charts.push(probabilityChart);
 
     const updateProbabilityChart = function() {

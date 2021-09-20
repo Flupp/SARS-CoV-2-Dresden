@@ -29,7 +29,7 @@ var STUB_KEY = '$chartjs_update_only_visible';
 var MODEL_KEY = '$update_only_visible';
 
 function chartInViewport(chart) {
-	var canvas = chart.chart.canvas;
+	var canvas = chart.canvas;
 
 	// http://stackoverflow.com/a/21696585
 	if (!canvas || canvas.offsetParent === null) {
@@ -73,7 +73,7 @@ function isScrollable(node) {
 }
 
 function watch(chart) {
-	var canvas = chart.chart.canvas;
+	var canvas = chart.canvas;
 	var parent = canvas.parentElement;
 	var stub, charts;
 
@@ -82,7 +82,7 @@ function watch(chart) {
 			stub = parent[STUB_KEY] || (parent[STUB_KEY] = {});
 			charts = stub.charts || (stub.charts = []);
 			if (charts.length === 0) {
-				helpers.addEvent(parent, 'scroll', onScroll);
+				parent.addEventListener('scroll', onScroll);
 			}
 
 			charts.push(chart);
@@ -98,7 +98,7 @@ function unwatch(chart) {
 		var charts = element[STUB_KEY].charts;
 		charts.splice(charts.indexOf(chart), 1);
 		if (!charts.length) {
-			helpers.removeEvent(element, 'scroll', onScroll);
+			element.removeEventListener('scroll', onScroll);
 			delete element[STUB_KEY];
 		}
 	});
@@ -106,7 +106,7 @@ function unwatch(chart) {
 	chart[MODEL_KEY].elements = [];
 }
 
-Chart.plugins.register({
+Chart.register({
 	id: 'update-only-visible',
 
 	beforeInit: function(chart, options) {
@@ -117,7 +117,7 @@ Chart.plugins.register({
 		};
 	},
 
-	beforeUpdate: function(chart, options) {
+	beforeUpdate: function(chart, _options) {
 		var model = chart[MODEL_KEY];
 		if (chartInViewport(chart)) {
 			if (model.watching) {

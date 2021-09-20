@@ -9,6 +9,8 @@
   "author": "Toni Dietze",
   "license": "MIT-0",
   "dependencies": {
-    "chart.js": "^2.9.4"
+    "chart.js": "^3.5.1",
+    "chartjs-adapter-luxon": "1.1.0",
+    "luxon": "^2.0.2"
   }
 }
