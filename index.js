@@ -11,15 +11,22 @@ const colorsNeutral   = { dark:  'hsl(190, 100%, 35%)'
                         , light: 'hsl(190, 100%, 55%)' };
 const colorsNew       = { dark:  'hsl(  0, 100%, 45%)'
                         , light: 'hsl(  0, 100%, 65%)' };
-const colorsDeceased  = { dark:  'hsl(  0,   0%, 30%)'
+const colorsDeceased  = { dark:  'hsl(  0,   0%,  0%)'
                         , light: 'hsl(  0,   0%, 50%)' };
 const colorsRecovered = { dark:  'hsl(160, 100%, 30%)'
                         , light: 'hsl(160, 100%, 50%)' };
 
 Chart.defaults.animation = false;
+Chart.defaults.borderColor = '#CCCCCC';
+Chart.defaults.elements.bar.pointStyle = 'rect';
+Chart.defaults.elements.line.borderWidth = 1;
+Chart.defaults.elements.line.cubicInterpolationMode = 'monotone';
+Chart.defaults.elements.point.borderWidth = 0;
+Chart.defaults.elements.point.hoverBorderWidth = 0;
 Chart.defaults.maintainAspectRatio = false;
 Chart.defaults.plugins.tooltip.itemSort = (a, b) => b.parsed.y - a.parsed.y;
 Chart.defaults.plugins.tooltip.mode = 'index';
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
 
 luxon.Settings.defaultZone = 'utc';
 luxon.Settings.defaultLocale = 'de';
@@ -111,9 +118,11 @@ function tooltipCallbackLabelWithInzidence(context) {
 }
 
 
-function calcPointRadius(xMin, xMax) {
-   return Math.max(1, Math.min(3,
+function updateDefaultPointRadius(xMin, xMax) {
+   const r = Math.max(2, Math.min(4,
      0.25 * window.innerWidth / ((xMax - xMin) / SAMPLE_INTERVAL)));
+    Chart.defaults.elements.point.pointHoverRadius = 1.3333333333333333 * r;
+    Chart.defaults.elements.point.pointRadius = r;
 }
 
 
@@ -150,13 +159,6 @@ function updateChartHeight(height) {
 }
 
 
-function weekcoloring(data, colors) {
-  return data.map(
-    p => 1 <= p.x.getDay() && p.x.getDay() <= 5
-       ? colors.dark : colors.light);
-}
-
-
 
 
 function toTimeSeries(startTime, data) {
@@ -171,8 +173,7 @@ function toTimeSeries(startTime, data) {
 
 function createBarDataset(label, colors, startTime, data) {
   const timeSeries = toTimeSeries(startTime, data);
-  return { backgroundColor: weekcoloring(timeSeries, colors)
-         , borderWidth: 0
+  return { backgroundColor: colors.dark
          , data: timeSeries
          , label: label
          , type: 'bar' };
@@ -181,14 +182,10 @@ function createBarDataset(label, colors, startTime, data) {
 
 function createLineDataset(label, colors, startTime, data) {
   const timeSeries = toTimeSeries(startTime, data);
-  const colorSequence = weekcoloring(timeSeries, colors);
-  return { backgroundColor: colorSequence
+  return { backgroundColor: colors.dark
          , borderColor: colors.light
-         , borderWidth: 1
-         , cubicInterpolationMode: 'monotone'
          , data: timeSeries
          , label: label
-         , pointBorderColor: colorSequence
          , type: 'line' };
 }
 
@@ -247,7 +244,7 @@ window.onload = function() {
     const xMin = Math.max(dayFirst, dayLast - 70 * SAMPLE_INTERVAL);
     const xMax = dayLast + 1.5 * SAMPLE_INTERVAL;
       // add more than one because last incidence is in future
-    Chart.defaults.elements.point.radius = calcPointRadius(xMin, xMax);
+    updateDefaultPointRadius(xMin, xMax);
 
     {
       const slider = document.getElementById('idxFirst');
@@ -255,9 +252,8 @@ window.onload = function() {
       slider.max = dayLast  - SAMPLE_INTERVAL;
       slider.value = xMin;
       slider.oninput = function () {
-        const r = calcPointRadius(this.value, this.max);
+        updateDefaultPointRadius(this.value, xMax);
         for (const chart of charts) {
-          chart.options.elements.point.radius = r;
           chart.options.scales.x.min = Number(this.value);
           chart.update();
         }
@@ -265,9 +261,8 @@ window.onload = function() {
     }
     window.onresize = function () {
       const slider = document.getElementById('idxFirst');
-      const r = calcPointRadius(slider.value, slider.max);
+      updateDefaultPointRadius(slider.value, xMax);
       for (const chart of charts) {
-        chart.options.elements.point.radius = r;
         chart.update();
       }
     };
@@ -306,7 +301,6 @@ window.onload = function() {
                                  , daily7DayIncidence )
               , { backgroundColor: '#84170e'
                 , borderColor: '#84170e'
-                , borderWidth: 1
                 , label: 'IfSG'
                 , pointHoverRadius: 0
                 , pointRadius: 0
@@ -346,7 +340,7 @@ window.onload = function() {
                            , stacked: true
                            , time: timeScale
                            , type: 'time' }
-                      , y: { stacked: true } }
+                      , y: { stacked: true, ticks: { precision: 0 } } }
             , plugins:
               { tooltip:
                 { callbacks: { label: tooltipCallbackLabelWithInzidence } } } }
@@ -360,7 +354,7 @@ window.onload = function() {
                                                  , dayFirst
                                                  , dailyActive ) ] }
           , options:
-            { scales: { x: scaleX }
+            { scales: { x: scaleX, y: { ticks: { precision: 0 } } }
             , plugins:
               { tooltip:
                 { callbacks: { label: tooltipCallbackLabelWithInzidence } } } }
@@ -376,7 +370,7 @@ window.onload = function() {
                                  , dayFirst
                                  , dailyHospitalized ) ] }
           , options:
-            { scales: { x: scaleX }
+            { scales: { x: scaleX, y: { ticks: { precision: 0 } } }
             , plugins:
               { tooltip:
                 { callbacks: { label: tooltipCallbackLabelWithInzidence } } } }
@@ -396,7 +390,7 @@ window.onload = function() {
                                   , dayFirst
                                   , windowSums(20, dailyHospitalized) ) ] }
           , options:
-            { scales: { x: scaleX, y: { min: 0 } }
+            { scales: { x: scaleX, y: { min: 0, ticks: { precision: 0 } } }
             , plugins:
               { tooltip:
                 { callbacks: { label: tooltipCallbackLabelWithInzidence } } } }
