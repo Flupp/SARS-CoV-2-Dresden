@@ -349,10 +349,10 @@ window.onload = function() {
     charts.push
       ( new Chart
         ( document.getElementById('canvasActive').getContext('2d')
-        , { data: { datasets: [ createBarDataset ( 'aktiv'
-                                                 , colorsNeutral
-                                                 , dayFirst
-                                                 , dailyActive ) ] }
+        , { data: { datasets: [ createLineDataset ( 'aktiv'
+                                                  , colorsNeutral
+                                                  , dayFirst
+                                                  , dailyActive ) ] }
           , options:
             { scales: { x: scaleX, y: { ticks: { precision: 0 } } }
             , plugins:
