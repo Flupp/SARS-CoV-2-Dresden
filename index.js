@@ -248,20 +248,20 @@ window.onload = function() {
 
     {
       const slider = document.getElementById('idxFirst');
-      slider.min = dayFirst - SAMPLE_INTERVAL;
-      slider.max = dayLast  - SAMPLE_INTERVAL;
-      slider.value = xMin;
+      slider.min = -(dayLast  - SAMPLE_INTERVAL);
+      slider.max = -(dayFirst - SAMPLE_INTERVAL);
+      slider.value = -xMin;
       slider.oninput = function () {
-        updateDefaultPointRadius(this.value, xMax);
+        updateDefaultPointRadius(-this.value, xMax);
         for (const chart of charts) {
-          chart.options.scales.x.min = Number(this.value);
+          chart.options.scales.x.min = Number(-this.value);
           chart.update();
         }
       };
     }
     window.onresize = function () {
       const slider = document.getElementById('idxFirst');
-      updateDefaultPointRadius(slider.value, xMax);
+      updateDefaultPointRadius(-slider.value, xMax);
       for (const chart of charts) {
         chart.update();
       }
