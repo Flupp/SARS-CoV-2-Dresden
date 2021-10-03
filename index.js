@@ -219,7 +219,6 @@ window.onload = function() {
     const dayFirst = data[0].Datum_neu;
     const dayLast  = data[data.length - 1].Datum_neu;
 
-    const daily7DayIncidenceOld = data.map(o => o.Inzidenz);
     const daily7DayIncidenceRKI = data.map(o => o.Inzidenz_RKI);
     const dailyNew              = data.map(o => o.Fälle_Meldedatum);
     const dailyDeaths           = data.map(o => o.SterbeF_Sterbedatum);
@@ -287,11 +286,7 @@ window.onload = function() {
         ( document.getElementById('canvas7DayIncidence').getContext('2d')
         , { data:
             { datasets:
-              [ { backgroundColor: '#000000'
-                , data: toTimeSeries(dayFirst, daily7DayIncidenceOld)
-                , label: 'historisch'
-                , type: 'scatter' }
-              , { backgroundColor: '#003F97'
+              [ { backgroundColor: '#003F97'
                 , data: toTimeSeries(dayFirst, daily7DayIncidenceRKI)
                 , label: 'RKI'
                 , type: 'scatter' }
