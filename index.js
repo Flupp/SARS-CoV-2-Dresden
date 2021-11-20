@@ -371,25 +371,31 @@ window.onload = function() {
                 { callbacks: { label: tooltipCallbackLabelWithInzidence } } } }
           , plugins: [shadeWeekends] } ) );
 
-    charts.push
-      ( new Chart
+    const chartInHospital
+      = new Chart
         ( document.getElementById('canvasInHospital').getContext('2d')
         , { data:
-            { datasets:
-              [ createLineDataset ( '14 Tage'
-                                  , colorsRecovered
-                                  , dayFirst
-                                  , windowSums(14, dailyHospitalized) )
-              , createLineDataset ( '20 Tage'
-                                  , colorsNew
-                                  , dayFirst
-                                  , windowSums(20, dailyHospitalized) ) ] }
+            { datasets: [ ] }
           , options:
             { scales: { x: scaleX, y: { min: 0, ticks: { precision: 0 } } }
             , plugins:
               { tooltip:
                 { callbacks: { label: tooltipCallbackLabelWithInzidence } } } }
-          , plugins: [shadeWeekends] } ) );
+          , plugins: [shadeWeekends] } );
+    charts.push(chartInHospital);
+
+    const updateChartInHospital = function() {
+      const lengthOfStay = Number(document.getElementById('inputInHospitalLengthOfStay').value);
+      chartInHospital.data.datasets
+        = [ createLineDataset ( 'im Krankenhaus'
+                              , colorsNeutral
+                              , dayFirst
+                              , windowSums(lengthOfStay, dailyHospitalized) ) ];
+      chartInHospital.update();
+    };
+    updateChartInHospital();
+    document.getElementById('inputInHospitalLengthOfStay').oninput
+      = updateChartInHospital;
 
     const chartPrevalence
       = new Chart

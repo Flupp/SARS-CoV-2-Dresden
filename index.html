@@ -68,7 +68,36 @@
 
 		<h2>Im Krankenhaus (geschätzt)</h2>
 
-		<p>Schätzung auf Basis der täglichen Hospitalisierungen. Für die verschiedenen Kurven werden verschiedene Verweilzeiten angenommen.</p>
+		<p>Schätzung der Anzahl von Fällen, die im Krankenhaus sind.</p>
+
+		<p>Variablen:</p>
+
+		<dl>
+			<dt><var>hospitalisiert</var><sub><var>t</var></sub></dt>
+			<dd>Anzahl von Hospitalisierungen am Tag <var>t</var>.</dd>
+
+			<dt><var>Verweildauer</var></dt>
+			<dd>Anzahl an Tagen, die Hospitalisierte im Krankenhaus verbleiben.</dd>
+		</dl>
+
+		<p>Berechnung:</p>
+
+		<div class="align">
+			<p>
+				<span><var>im Krankenhaus</var><sub><var>t</var></sub></span>
+				<span>=</span>
+				<span>∑<sub><var>i</var> ∈ {0, …, <var>Verweildauer</var> − 1}</sub> <var>hospitalisiert</var><sub><var>t</var> − <var>i</var></sub></span>
+			</p>
+		</div>
+
+		<p>Parameter:</p>
+
+		<ul>
+			<li>
+				<label for="inputInHospitalLengthOfStay"><var>Verweildauer</var>:</label>
+				<input id="inputInHospitalLengthOfStay" type="number" min="1" max="100" value="14"> Tage
+			</li>
+		</ul>
 
 		<div class="chart-container">
 			<canvas id="canvasInHospital"></canvas>
