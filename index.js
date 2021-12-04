@@ -293,16 +293,7 @@ window.onload = function() {
               , createBarDataset ( 'aktuell'
                                  , colorsNeutral
                                  , dayFirst
-                                 , daily7DayIncidence )
-              , { backgroundColor: '#84170e'
-                , borderColor: '#84170e'
-                , label: 'IfSG'
-                , pointHoverRadius: 0
-                , pointRadius: 0
-                , data: [ { x: 0, y: 100 }, { x: xMax + SAMPLE_INTERVAL, y: 100 }
-                        , { x: xMax + SAMPLE_INTERVAL, y: 150 }, { x: 0, y: 150 }
-                        , { x: 0, y: 165 }, { x: xMax + SAMPLE_INTERVAL, y: 165 } ]
-                , type: 'line' } ] }
+                                 , daily7DayIncidence ) ] }
           , options:
             { scales: { x: scaleX }
             , plugins:
