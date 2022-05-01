@@ -101,35 +101,9 @@
 		</div>
 
 
-		<h2>Durchseuchung (geschätzt)</h2>
+		<h2>Gesamtzahl gemeldeter Fälle</h2>
 
-		<p>Schätzung des Anteils der Bevölkerung, der bereits infiziert war.</p>
-
-		<p>Variablen:</p>
-
-		<dl>
-			<dt><var>Fallzahl</var><sub><var>t</var></sub></dt><dd>Akkumulierte Anzahl erkannter Fälle bis zum Tag <var>t</var>.</dd>
-			<dt><var>Erkennungsrate</var></dt><dd>Vermutetes Verhältnis der Zahl der erkannten Fälle zur tatsächlichen Fallzahl.</dd>
-		</dl>
-
-		<p>Berechnung:</p>
-
-		<div class="align">
-			<p>
-				<span><var>Durchseuchung</var><sub><var>t</var></sub></span>
-				<span>=</span>
-				<span>(<var>Fallzahl</var><sub><var>t</var></sub> ÷ <var>Erkennungsrate</var>) ÷ <var>Einwohnerzahl</var></span>
-			</p>
-		</div>
-
-		<p>Parameter:</p>
-
-		<ul>
-			<li>
-				<label for="inputPrevalenceDetectionRate"><var>Erkennungsrate</var>:</label>
-				<input id="inputPrevalenceDetectionRate" type="number" min="0" max="100" value="25"> %
-			</li>
-		</ul>
+		<p>Akkumulierte Anzahl gemeldeter Fälle relativ zur Einwohnerzahl.</p>
 
 		<div class="chart-container">
 			<canvas id="canvasPrevalence"></canvas>

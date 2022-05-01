@@ -392,7 +392,10 @@ window.onload = function() {
       = new Chart
         ( document.getElementById('canvasPrevalence').getContext('2d')
         , { data:
-            { datasets: [ ] }
+            { datasets: [ createLineDataset ( 'Fälle gesamt'
+                                            , colorsNeutral
+                                            , dayFirst
+                                            , accumNew.map(n => 100 * n / POPULATION_SIZE) ) ] }
           , options:
             { scales: { x: scaleX
                       , y: { min: 0
@@ -405,19 +408,6 @@ window.onload = function() {
                 { callbacks: { label: tooltipCallbackLabelRounded } } } }
           , plugins: [shadeWeekends] } );
     charts.push(chartPrevalence);
-
-    const updateChartPrevalence = function() {
-      const detectionRate = 0.01 * Number(document.getElementById('inputPrevalenceDetectionRate').value);
-      chartPrevalence.data.datasets
-        = [ createLineDataset ( 'Durchseuchung'
-                              , colorsNeutral
-                              , dayFirst
-                              , accumNew.map(n => 100 * n / POPULATION_SIZE / detectionRate) ) ];
-      chartPrevalence.update();
-    };
-    updateChartPrevalence();
-    document.getElementById('inputPrevalenceDetectionRate').oninput
-      = updateChartPrevalence;
 
     const probabilityChart
       = new Chart
