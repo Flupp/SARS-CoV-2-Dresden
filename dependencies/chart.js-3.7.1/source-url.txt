@@ -1,0 +1,2 @@
+https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js
+https://cdn.jsdelivr.net/npm/chart.js@3.7.1/LICENSE.md
