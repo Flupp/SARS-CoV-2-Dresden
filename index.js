@@ -340,7 +340,7 @@ window.onload = function() {
                                                   , dayFirst
                                                   , dailyActive ) ] }
           , options:
-            { scales: { x: scaleX, y: { ticks: { precision: 0 } } }
+            { scales: { x: scaleX, y: { min: 0, ticks: { precision: 0 } } }
             , plugins:
               { tooltip:
                 { callbacks: { label: tooltipCallbackLabelWithInzidence } } } }
